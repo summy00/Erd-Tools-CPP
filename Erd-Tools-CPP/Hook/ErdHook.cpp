@@ -2,7 +2,7 @@
 #include "../Include/ErdToolsMain.h"
 #include "../Include/Signature.h"
 #include "../Util/ParamEditor.h"
-
+#include <plog/Log.h>
 
 extern ErdToolsMain* main_mod;
 ModuleData EldenRingData("eldenring.exe");
@@ -13,14 +13,15 @@ bool ErdHook::CreateMemoryEdits() {
     if (_minhookActive != MH_OK) {
         throw std::runtime_error("MH_Initialize != MH_OK");
     }
-
+    PLOG_INFO << "Finding Sig .......................................\n";
     if (!FindNeededSignatures()) {
-        printf("Find Sig Failed\n");
+        printf("Find Sig Failed...............................\n");
+        PLOG_INFO << "Find Sig Failed...............................";
         //throw std::runtime_error("Failed to find function signatures");
     }
 
     if constexpr (DEBUG_CONSOLE) debugPrint();
-
+    //PLOG_INFO << 
     return true;
 }
 
@@ -28,7 +29,7 @@ uint64_t* EventHook::EventMan = nullptr;
 
 bool ErdHook::FindNeededSignatures() {
     if (!EldenRingData.BaseAddress) {
-        //
+        PLOG_INFO << "EldenRingData.BaseAddress is null";
         return false;
     }
 

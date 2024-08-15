@@ -1,13 +1,24 @@
 #include "Include/ErdToolsMain.h"
 
 #include <codecvt>
-
+//#include "./Include/plog/Log.h"
+#include <plog/Log.h>
+#include <plog/Init.h>
+#include <plog/Formatters/TxtFormatter.h>
+#include <plog/Appenders/RollingFileAppender.h>
 ErdToolsMain* main_mod = nullptr;
 
+void InitLog() {
+	static plog::RollingFileAppender<plog::TxtFormatter> fileAppender("SetFileNameAAA.log");
+	plog::init(plog::debug, &fileAppender);
+
+}
 void CreateHook() {
 	using namespace std::chrono_literals;
 	// Wait for Elden Ring
 	std::this_thread::sleep_for(5s);
+	InitLog();
+	PLOG_INFO << "hello";
 
 	main_mod = new ErdToolsMain();
 
@@ -81,7 +92,10 @@ bool ErdToolsMain::ReadINI() {
 	char ini_path[MAX_PATH + 1];
 	strcpy_s(ini_path, module_dir);
 	strcat_s(ini_path, "\\erd_tools.ini");
+
+	PLOG_INFO << "path:" << ini_path;
 	INIReader option_reader = INIReader(ini_path);
+	
 	int error = option_reader.ParseError();
 	if (error) {
 		return false;
@@ -132,7 +146,7 @@ bool ErdToolsMain::ReadINI() {
 	header_segment = "SAVE";
 	std::string ext	= option_reader.Get(header_segment, "save_extension", "sl2");
 	Hook._extension	= std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(ext);
-
+	PLOG_INFO << "load ini end";
 	return true;
 }
 
