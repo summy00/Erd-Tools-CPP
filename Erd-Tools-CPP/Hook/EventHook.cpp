@@ -2,6 +2,11 @@
 #include "../minhook/include/MinHook.h"
 #define MAX_TIME 100
 
+//void RefreshMapAdd() {
+//	Signature closeMap = Signature("E8 ?? ?? ?? ?? 84 C0 75 ?? 38 83 ?? ?? ?? ?? 75 ?? 83 E7 FE");
+//	DebugMan->CloseMapInCombatLocation = (uint64_t)closeMap.Scan(&EldenRingData);
+//}
+
 void EventHook::SetEventFlagHook(const uint64_t event_man, uint32_t* event_id, bool state) {
 	bool current_state = IsEventFlag(event_man, event_id);
 	SetEventFlagOriginal(event_man, event_id, state);
@@ -16,6 +21,8 @@ void EventHook::SetEventFlagHook(const uint64_t event_man, uint32_t* event_id, b
 	char time[MAX_TIME];
 	strftime(time, MAX_TIME, "%a, %d %b %Y %r", &t);
 	printf("%s - Event Flag Set: %u %d\n", time, *event_id, state);
+
+
 }
 
 bool EventHook::EnableFlagListener() {

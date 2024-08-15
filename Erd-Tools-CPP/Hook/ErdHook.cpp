@@ -4,6 +4,8 @@
 #include "../Util/ParamEditor.h"
 #include <plog/Log.h>
 
+#include <chrono>
+#include <thread>
 extern ErdToolsMain* main_mod;
 ModuleData EldenRingData("eldenring.exe");
 
@@ -13,13 +15,19 @@ bool ErdHook::CreateMemoryEdits() {
     if (_minhookActive != MH_OK) {
         throw std::runtime_error("MH_Initialize != MH_OK");
     }
-    PLOG_INFO << "Finding Sig .......................................\n";
+    PLOG_INFO << "Finding Sig .......................................";
     if (!FindNeededSignatures()) {
-        printf("Find Sig Failed...............................\n");
-        PLOG_INFO << "Find Sig Failed...............................";
+        PLOG_INFO.printf("Find Sig Failed...............................");
         //throw std::runtime_error("Failed to find function signatures");
     }
-
+    //while (!FindNeededSignatures())
+    //{
+    //    PLOG_INFO.printf("Find Sig Failed...............................");
+    //    using namespace std::chrono_literals;
+    //    std::this_thread::sleep_for(5s);
+    //}
+    PLOG_INFO.printf("Find Sig Success!!!");
+    debugPrint();
     if constexpr (DEBUG_CONSOLE) debugPrint();
     //PLOG_INFO << 
     return true;
@@ -43,14 +51,24 @@ bool ErdHook::FindNeededSignatures() {
     Signature isEvent = Signature("48 83 EC 28 8B 12 85 D2");
     *(void**)&EventHook::IsEventFlag = isEvent.Scan(&EldenRingData, Align16);
 
+
+    // patch DisableOpenMapInCombatLocation = 0xEB;
+    // 74 2E C7 45 50 58 02 00 00 C7 45 54 02 00 00 00 C7 45 58 01 00 00 00 in CT
     Signature disableMap = Signature(
         "74 ?? C7 45 ?? ?? ?? ?? ?? C7 45 ?? ?? ?? ?? ?? C7 45 ?? ?? ?? ?? ?? 48 8D 05 ?? ?? ?? ?? 48 89 45 ?? 48 8D 4D ?? E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? 48 83 BF");
     DebugMan->DisableOpenMapInCombatLocation = (uint64_t)disableMap.Scan(&EldenRingData);
+    PLOG_INFO << "DisableOpenMapInCombatLocation: " << (DebugMan->DisableOpenMapInCombatLocation);
 
-    Signature closeMap = Signature("E8 ?? ?? ?? ?? 84 C0 75 ?? 38 83 ?? ?? ?? ?? 75 ?? 83 E7 FE");
-    DebugMan->CloseMapInCombatLocation = (uint64_t)closeMap.Scan(&EldenRingData);
+    // change CloseMapInCombatLocation addr value to { 0x48, 0x31, 0xC0, 0x90, 0x90 };
+    /*Signature closeMap = Signature("E8 ?? ?? ?? ?? 84 C0 75 ?? 38 83 ?? ?? ?? ?? 75 ?? 83 E7 FE");
+    DebugMan->CloseMapInCombatLocation = (uint64_t)closeMap.Scan(&EldenRingData);*/
 
-    Signature disableCrafting = Signature(
+    Signature closeMap2 = Signature("48 8B 03 48 8B CB 48 8B 94 24 ???????? FF 50 60 48 8D 8B ???????? 66 C7 83 ????????  ?????? 83 ???????? 00");
+    DebugMan->CloseMapInCombatLocation = (uint64_t)closeMap2.Scan(&EldenRingData);
+    PLOG_INFO << "CloseMapInCombatLocation: " << (DebugMan->CloseMapInCombatLocation);
+
+
+    /*Signature disableCrafting = Signature(
         "48 83 EC ?? 48 8B 0D ?? ?? ?? ?? 48 85 C9 75 ?? 48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? 4C 8B C8 4C 8D 05 ?? ?? ?? ?? BA B4 00 00 00 48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? 48 8B 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? 84 C0 0F 94 C0 48 83 C4 ?? C3",
         0x3E);
     DebugMan->DisableCrafingInCombatLocation = (uint64_t)disableCrafting.Scan(&EldenRingData);
@@ -144,7 +162,7 @@ bool ErdHook::FindNeededSignatures() {
     FeMan->_updateUIBarStructs = (uintptr_t)updateUIBarStructs.Scan(&EldenRingData, Align16);
 
     Signature saveExtension = Signature("48 8D 15 ?? ?? ?? ?? 48 8B CF E8 BD 0F 00 00 90");
-    _saveExtension = (wchar_t*)saveExtension.Scan(&EldenRingData, 0x3, 0x7);
+    _saveExtension = (wchar_t*)saveExtension.Scan(&EldenRingData, 0x3, 0x7);*/
 
     return EventMan && EventMan->SetEventFlagAddress && DebugMan->DisableOpenMapInCombatLocation
         && DebugMan->CloseMapInCombatLocation && DebugMan->DisableCrafingInCombatLocation && ParamMan->
@@ -167,37 +185,37 @@ void ErdHook::ChangeExtension() {
 }
 
 void ErdHook::debugPrint() {
-    printf("Ptrs: \n");
-    printf("Hook\n");
-    printf("WorldChrMan: %p\n", WorldChrManIns);
-    printf("CSSound: %p\n", SoundIns);
-    printf("\nEventMan\n");
-    printf("EventMan->EventMan: %p\n", EventMan->EventMan);
-    printf("EventMan->SetEventFlagAddress %p\n", EventMan->SetEventFlagAddress);
-    printf("\nDebugMan\n");
-    printf("DebugMan->DisableOpenMapInCombatLocation %p\n", DebugMan->DisableOpenMapInCombatLocation);
-    printf("DebugMan->CloseMapInCombatLocation %p\n", DebugMan->CloseMapInCombatLocation);
-    printf("DebugMan->DisableCrafingInCombatLocation %p\n", DebugMan->DisableCrafingInCombatLocation);
-    printf("\nParamMan\n");
-    printf("ParamMan->SoloParamRepositoryAddress %p\n", ParamMan->SoloParamRepositoryAddress);
-    printf("ParamMan->FindEquipParamWeaponFunc %p\n", ParamMan->FindEquipParamWeaponFunc);
-    printf("ParamMan->FindEquipParamProtectorFunc %p\n", ParamMan->FindEquipParamProtectorFunc);
-    printf("ParamMan->FindEquipParamGoodsFunc %p\n", ParamMan->FindEquipParamGoodsFunc);
-    printf("ParamMan->FindEquipMtrlSetParamFunc %p\n", ParamMan->FindEquipMtrlSetParamFunc);
-    printf("ParamMan->GetMenuCommonParamEntry %p\n", ParamMan->GetMenuCommonParamEntry);
-    printf("ParamMan->FindActionButtonParamEntry %p\n", ParamMan->FindActionButtonParamEntry);
-    printf("\nFeMan:\n");
-    printf("FeMan->_enableBossBarAddr %p\n", FeMan->_enableBossBarAddr);
-    printf("FeMan->_disableBossBarAddr %p\n", FeMan->_disableBossBarAddr);
-    printf("FeMan->GetChrInsFromEntityIdFunc %p\n", FeMan->GetChrInsFromEntityIdFunc);
-    printf("FeMan->CSFeMan %p\n", FeMan->CSFeMan);
-    printf("FeMan->_applyBossBarDmg %p\n", FeMan->_applyBossBarDmg);
-    printf("FeMan->_handleDmg %p\n", FeMan->_handleDmg);
-    printf("FeMan->_applyEntityBarDmg %p\n", FeMan->_applyEntityBarDmg);
-    printf("FeMan->_executeActionButtonParamProxy %p\n", FeMan->_executeActionButtonParamProxy);
-    printf("FeMan->_actionButtonParamImp %p\n", FeMan->_actionButtonParamImp);
-    printf("FeMan->_enemyInsDtor %p\n", FeMan->_enemyInsDtor);
-    printf("FeMan->_chrInsDtor %p\n", FeMan->_chrInsDtor);
-    printf("_saveExtension %p\n", _saveExtension);
-    printf("_saveExtension %ls\n", _saveExtension);
+    PLOG_INFO.printf("Ptrs: ");
+    PLOG_INFO.printf("Hook");
+    PLOG_INFO.printf("WorldChrMan: %p", WorldChrManIns);
+    PLOG_INFO.printf("CSSound: %p", SoundIns);
+    PLOG_INFO.printf("EventMan");
+    PLOG_INFO.printf("EventMan->EventMan: %p", EventMan->EventMan);
+    PLOG_INFO.printf("EventMan->SetEventFlagAddress %p", EventMan->SetEventFlagAddress);
+    PLOG_INFO.printf("DebugMan");
+    PLOG_INFO.printf("DebugMan->DisableOpenMapInCombatLocation %p", DebugMan->DisableOpenMapInCombatLocation);
+    PLOG_INFO.printf("DebugMan->CloseMapInCombatLocation %p", DebugMan->CloseMapInCombatLocation);
+    /*PLOG_INFO.printf("DebugMan->DisableCrafingInCombatLocation %p", DebugMan->DisableCrafingInCombatLocation);
+    PLOG_INFO.printf("ParamMan");
+    PLOG_INFO.printf("ParamMan->SoloParamRepositoryAddress %p", ParamMan->SoloParamRepositoryAddress);
+    PLOG_INFO.printf("ParamMan->FindEquipParamWeaponFunc %p", ParamMan->FindEquipParamWeaponFunc);
+    PLOG_INFO.printf("ParamMan->FindEquipParamProtectorFunc %p", ParamMan->FindEquipParamProtectorFunc);
+    PLOG_INFO.printf("ParamMan->FindEquipParamGoodsFunc %p", ParamMan->FindEquipParamGoodsFunc);
+    PLOG_INFO.printf("ParamMan->FindEquipMtrlSetParamFunc %p", ParamMan->FindEquipMtrlSetParamFunc);
+    PLOG_INFO.printf("ParamMan->GetMenuCommonParamEntry %p", ParamMan->GetMenuCommonParamEntry);
+    PLOG_INFO.printf("ParamMan->FindActionButtonParamEntry %p", ParamMan->FindActionButtonParamEntry);
+    PLOG_INFO.printf("FeMan:");
+    PLOG_INFO.printf("FeMan->_enableBossBarAddr %p", FeMan->_enableBossBarAddr);
+    PLOG_INFO.printf("FeMan->_disableBossBarAddr %p", FeMan->_disableBossBarAddr);
+    PLOG_INFO.printf("FeMan->GetChrInsFromEntityIdFunc %p", FeMan->GetChrInsFromEntityIdFunc);
+    PLOG_INFO.printf("FeMan->CSFeMan %p", FeMan->CSFeMan);
+    PLOG_INFO.printf("FeMan->_applyBossBarDmg %p", FeMan->_applyBossBarDmg);
+    PLOG_INFO.printf("FeMan->_handleDmg %p", FeMan->_handleDmg);
+    PLOG_INFO.printf("FeMan->_applyEntityBarDmg %p", FeMan->_applyEntityBarDmg);
+    PLOG_INFO.printf("FeMan->_executeActionButtonParamProxy %p", FeMan->_executeActionButtonParamProxy);
+    PLOG_INFO.printf("FeMan->_actionButtonParamImp %p", FeMan->_actionButtonParamImp);
+    PLOG_INFO.printf("FeMan->_enemyInsDtor %p", FeMan->_enemyInsDtor);
+    PLOG_INFO.printf("FeMan->_chrInsDtor %p", FeMan->_chrInsDtor);
+    PLOG_INFO.printf("_saveExtension %p", _saveExtension);
+    PLOG_INFO.printf("_saveExtension %ls", _saveExtension);*/
 }

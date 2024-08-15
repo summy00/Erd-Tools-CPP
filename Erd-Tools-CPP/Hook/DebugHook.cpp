@@ -1,15 +1,27 @@
 #include "../Include/DebugHook.h"
-
+#include <plog/Log.h>
 uint64_t DisableOpenMap = 0;
 uint64_t CombatCloseMap = 0;
 
 void DebugHook::EnableMapInCombat() {
 	/* backup original bytes */
+	if (!CloseMapInCombatLocation) {
+		PLOG_ERROR << "CloseMapInCombatLocation is NULL";
+		return;
+	}
+	else {
+		PLOG_INFO << "CloseMapInCombatLocation is " << CloseMapInCombatLocation;
+	}
+
 	memcpy(close_map_original_bytes, (void*)CloseMapInCombatLocation, sizeof(close_map_original_bytes));
 
 	/* patch map functions */
 	*(unsigned char*)DisableOpenMapInCombatLocation = 0xEB;
-	memcpy((void*)CloseMapInCombatLocation, CLOSE_MAP_PATCH_BYTES, sizeof(CLOSE_MAP_PATCH_BYTES));
+	/*const unsigned char CLOSE_MAP_PATCH_BYTES[5] = { 0x48, 0x31, 0xC0, 0x90, 0x90 };
+	memcpy((void*)(CloseMapInCombatLocation - 35), CLOSE_MAP_PATCH_BYTES, sizeof(CLOSE_MAP_PATCH_BYTES));*/
+	
+	const unsigned char CLOSE_MAP_2[5] = { 0x90, 0x90, 0x90, 0x90, 0x90 };
+	memcpy((void*)(CloseMapInCombatLocation-0x35), CLOSE_MAP_2, sizeof(CLOSE_MAP_2));
 	combat_map_patched = true;
 }
 

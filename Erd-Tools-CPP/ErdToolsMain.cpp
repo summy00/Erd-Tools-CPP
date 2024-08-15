@@ -9,16 +9,16 @@
 ErdToolsMain* main_mod = nullptr;
 
 void InitLog() {
-	static plog::RollingFileAppender<plog::TxtFormatter> fileAppender("SetFileNameAAA.log");
-	plog::init(plog::debug, &fileAppender);
+	static plog::RollingFileAppender<plog::TxtFormatter> fileAppender("ErdTools.log");
+	plog::init(plog::warning, &fileAppender);
 
 }
 void CreateHook() {
 	using namespace std::chrono_literals;
 	// Wait for Elden Ring
-	std::this_thread::sleep_for(5s);
+	std::this_thread::sleep_for(10s);
 	InitLog();
-	PLOG_INFO << "hello";
+	PLOG_WARNING << "\nstarting injection....";
 
 	main_mod = new ErdToolsMain();
 
@@ -68,11 +68,11 @@ void ErdToolsMain::Setup() {
 	//@TODO:Check if communication with debug tools is open and open if it is not and ini doesn't exist.
 	}
 
-	Hook.ChangeExtension();
+	//Hook.ChangeExtension();
 
-	Hook.ParamMan->InitParamTools();
-	
-	Hook.FeMan->EnableLootPrefs();
+	//Hook.ParamMan->InitParamTools();
+	//
+	//Hook.FeMan->EnableLootPrefs();
 }
 
 bool ErdToolsMain::ReadINI() {
@@ -151,16 +151,24 @@ bool ErdToolsMain::ReadINI() {
 }
 
 void ErdToolsMain::InitPreferences() {
+	PLOG_INFO << "InitPreferences start";
 	if (Preferences & log_flags_in_console) {
+		PLOG_INFO << "1";
 		EnableDebugConsole();
+		PLOG_INFO << "2";
 		Hook.EventMan->EnableFlagListener();
+		PLOG_INFO << "3";
 	}
 
 	if (Preferences & enable_map_in_combat) {
+		PLOG_INFO << "4";
 		Hook.DebugMan->EnableMapInCombat();
-	}
+		PLOG_INFO << "5";
 
-	if (Preferences & enable_crafting_in_combat) {
+	}
+	PLOG_INFO << "InitPreferences end";
+
+	/*if (Preferences & enable_crafting_in_combat) {
 		Hook.DebugMan->EnableCraftingInCombat();
 	}
 
@@ -170,5 +178,5 @@ void ErdToolsMain::InitPreferences() {
 
 	if (Preferences & enable_entity_poise_meter) {
 		Hook.FeMan->EnableEntityPoiseMeter();
-	}
+	}*/
 }
