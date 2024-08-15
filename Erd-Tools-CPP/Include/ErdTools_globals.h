@@ -3,6 +3,7 @@
 
 struct ActionButtonParam;
 struct EquipParamWeapon;
+#define __UINT32_MAX__  ((uint32_t)-1)
 
 enum UserPreferences {
     none = 0,

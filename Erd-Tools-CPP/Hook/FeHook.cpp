@@ -6,6 +6,7 @@
 extern ErdToolsMain* main_mod;
 extern "C" int ExecActionButtonParamProxyWrapper();
 extern "C" uint64_t ExecuteActionButtonParamProxyReturn = 0;
+#define __UINT64_MAX__ ((uint64_t)-1)
 
 bool FeHook::EnableBossPoiseMeter() {
     BossBarPoiseMeterEnabled = true;

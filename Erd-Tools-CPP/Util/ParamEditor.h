@@ -195,7 +195,7 @@ void ParamEditor<T>::init(SoloParamRepository* soloParamRepository) {
     _defaultEntry = T(*(T*)(_paramTable[0].ParamOffset + _paramPointer));
 }
 
-//std::vector<uint8_t> Param;
+std::vector<uint8_t> Param;
 
 template <typename T>
 void ParamEditor<T>::AddNewParams() {
