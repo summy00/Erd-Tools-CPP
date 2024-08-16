@@ -159,7 +159,7 @@
       <EnableUAC>false</EnableUAC>
     </Link>
     <PostBuildEvent>
-      <Command>copy /Y $(TargetPath) "D:\SteamLibrary\steamapps\common\ELDEN RING\Game"</Command>
+      <Command>copy /Y $(TargetPath) "D:\SteamLibrary\steamapps\common\ELDEN RING\Game\mods\ErdToolsXuri"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

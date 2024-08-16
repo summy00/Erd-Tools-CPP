@@ -70,9 +70,9 @@ void ErdToolsMain::Setup() {
 
 	//Hook.ChangeExtension();
 
-	//Hook.ParamMan->InitParamTools();
+	Hook.ParamMan->InitParamTools();
 	//
-	//Hook.FeMan->EnableLootPrefs();
+	Hook.FeMan->EnableLootPrefs();
 }
 
 bool ErdToolsMain::ReadINI() {
@@ -168,15 +168,16 @@ void ErdToolsMain::InitPreferences() {
 	}
 	PLOG_INFO << "InitPreferences end";
 
-	/*if (Preferences & enable_crafting_in_combat) {
+	if (Preferences & enable_crafting_in_combat) {
 		Hook.DebugMan->EnableCraftingInCombat();
 	}
-
+	PLOG_INFO << "6";
 	if (Preferences & enable_boss_poise_meter) {
 		Hook.FeMan->EnableBossPoiseMeter();
 	}
-
+	PLOG_INFO << "7";
 	if (Preferences & enable_entity_poise_meter) {
 		Hook.FeMan->EnableEntityPoiseMeter();
-	}*/
+	}
+	PLOG_INFO << "8";
 }

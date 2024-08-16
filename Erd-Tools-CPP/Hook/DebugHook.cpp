@@ -39,6 +39,7 @@ void DebugHook::EnableCraftingInCombat() {
 	memcpy(disable_crafting_original_bytes, (void*)DisableCrafingInCombatLocation, sizeof(disable_crafting_original_bytes));
 
 	/* patch map functions */
+	const unsigned char DISABLE_CRAFTING_PATCH_BYTES[5] = { 0xB8, 0x00, 0x00, 0x00, 0x00 };
 	memcpy((void*)DisableCrafingInCombatLocation, DISABLE_CRAFTING_PATCH_BYTES, sizeof(DISABLE_CRAFTING_PATCH_BYTES));
 	combat_crafting_patched = true;
 }
